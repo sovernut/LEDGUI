@@ -6,7 +6,7 @@ class ToggleButton{
    int sizey=20;
    ToggleButton(String name,int x,int y) {
      this.name = name;
-     this.state = true;
+     this.state = false;
      this.x = x;
      this.y = y;
    }
