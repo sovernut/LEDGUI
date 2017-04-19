@@ -2,13 +2,15 @@ int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
 ToggleButton[] tg = new ToggleButton[4];
-
+ PImage tower;
 void setup(){
+
   size(1000,600);
   String[] name = {"PEN","Red","Green","Blue"};
   for (int i=0;i<4;i++){
     tg[i] = new ToggleButton(name[i],66+i*60,549);//sizex=50 but use 60 for space
   }
+//load_image();
 }
 
 void draw(){
@@ -16,8 +18,10 @@ void draw(){
   draw_pixels();
   draw_color_panel();
   draw_send_button();
+  load_image();
   for (int i=0;i<4;i++) tg[i].draws();
-  println(mouseX,mouseY);
+  //println(mouseX,mouseY);
+  //image(tower,0,0);
 }
 void mouseDragged(){
   selected_pixels();
@@ -37,6 +41,47 @@ void keyPressed() {
        box_color[i][2]=0;
      }
  }
+}
+
+void load_image(){
+
+  tower = loadImage("image.jpg");
+  tower.resize(led_width,led_height);
+  //float step = map(1,0,float(dimension),0,led_width*led_height);
+  //print(dimension,step);
+  float sizex = float(width)/float(led_width);
+  float sizey = float(height-100)/float(led_height);
+  color[] color7 = {color(0,0,255),color(0,255,0),color(0,255,255),
+                    color(255,0,0),color(255,0,255),color(255,255,0),
+                    color(255,255,255)};
+  tower.loadPixels();
+  for (int i = 0; i < led_height; i++) { 
+    for (int j=0; j<led_width;j++){
+
+      float smallest = colorDistance(tower.pixels[(i*64)+j], color7[0]);
+      int nearestColor = color7[0];
+        for (int k=1;k<color7.length;k++){
+          float distance = colorDistance(tower.pixels[(i*64)+j], color7[k]);
+          if (distance < smallest) {
+            smallest = distance;
+            nearestColor = color7[k];
+            
+          }
+        }
+      
+        fill(nearestColor);
+          rect(j*sizex,sizey*i,sizex,sizey);
+    }
+  } 
+}
+
+float colorDistance(color a, color b) 
+{
+      float redDiff = red(a) - red(b);
+      float grnDiff = green(a) - green(b);
+      float bluDiff = blue(a) - blue(b);
+
+      return sqrt( sq(redDiff) + sq(grnDiff) + sq(bluDiff) );
 }
 
 void draw_pixels(){
