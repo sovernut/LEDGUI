@@ -2,7 +2,7 @@ int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
 ToggleButton[] tg = new ToggleButton[4];
- PImage tower;
+
 void setup(){
 
   size(1000,600);
@@ -10,7 +10,7 @@ void setup(){
   for (int i=0;i<4;i++){
     tg[i] = new ToggleButton(name[i],66+i*60,549);//sizex=50 but use 60 for space
   }
-//load_image();
+
 }
 
 void draw(){
@@ -18,10 +18,8 @@ void draw(){
   draw_pixels();
   draw_color_panel();
   draw_send_button();
-  load_image();
+  
   for (int i=0;i<4;i++) tg[i].draws();
-  //println(mouseX,mouseY);
-  //image(tower,0,0);
 }
 void mouseDragged(){
   selected_pixels();
@@ -41,10 +39,13 @@ void keyPressed() {
        box_color[i][2]=0;
      }
  }
+ if (keyCode==97 || keyCode=='1'){
+   load_image();
+ }
 }
 
 void load_image(){
-
+ PImage tower;
   tower = loadImage("image.jpg");
   tower.resize(led_width,led_height);
   //float step = map(1,0,float(dimension),0,led_width*led_height);
@@ -68,9 +69,9 @@ void load_image(){
             
           }
         }
-      
-        fill(nearestColor);
-          rect(j*sizex,sizey*i,sizex,sizey);
+      box_color[j*led_height+i][0]= int(red(nearestColor));
+      box_color[j*led_height+i][1]= int(green(nearestColor));
+      box_color[j*led_height+i][2]= int(blue(nearestColor));
     }
   } 
 }
