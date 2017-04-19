@@ -50,8 +50,6 @@ void load_image(){
   tower.resize(led_width,led_height);
   //float step = map(1,0,float(dimension),0,led_width*led_height);
   //print(dimension,step);
-  float sizex = float(width)/float(led_width);
-  float sizey = float(height-100)/float(led_height);
   color[] color7 = {color(0,0,255),color(0,255,0),color(0,255,255),
                     color(255,0,0),color(255,0,255),color(255,255,0),
                     color(255,255,255)};
