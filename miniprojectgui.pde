@@ -20,8 +20,6 @@ void draw(){
   draw_send_button();
   
   for (int i=0;i<4;i++) tg[i].draws();
-}
-void mouseDragged(){
   selected_pixels();
 }
 
@@ -33,7 +31,7 @@ void mousePressed(){
 
 void keyPressed() {
  if (keyCode==96 || keyCode=='0') {
-     for (int i=0;i<led_width*led_height;i++) {
+     for (int i=0;i<led_width*led_height;i+=1) {
        box_color[i][0]=0;
        box_color[i][1]=0;
        box_color[i][2]=0;
@@ -42,45 +40,99 @@ void keyPressed() {
  if (keyCode==97 || keyCode=='1'){
    load_image();
  }
+
+if (keyCode==98 || keyCode=='2'){
+   fill_pixels();
+ }
 }
 
 void load_image(){
- PImage tower;
-  tower = loadImage("image.jpg");
-  tower.resize(led_width,led_height);
-  //float step = map(1,0,float(dimension),0,led_width*led_height);
-  //print(dimension,step);
-  color[] color7 = {color(0,0,255),color(0,255,0),color(0,255,255),
+ PImage Image;
+  Image = loadImage("image.jpg");
+  Image.resize(led_width,led_height);
+  color[] color7 = {color(0,0,0),color(0,0,255),color(0,255,0),color(0,255,255),
                     color(255,0,0),color(255,0,255),color(255,255,0),
                     color(255,255,255)};
-  tower.loadPixels();
+  Image.loadPixels();
   for (int i = 0; i < led_height; i++) { 
     for (int j=0; j<led_width;j++){
-
-      float smallest = colorDistance(tower.pixels[(i*64)+j], color7[0]);
+      
+      float smallest = colorDistance(Image.pixels[(i*led_width)+j], color7[0]);
       int nearestColor = color7[0];
         for (int k=1;k<color7.length;k++){
-          float distance = colorDistance(tower.pixels[(i*64)+j], color7[k]);
-          if (distance < smallest) {
+          float distance = colorDistance(Image.pixels[(i*led_width)+j], color7[k]);
+          if (distance <= smallest) {
             smallest = distance;
             nearestColor = color7[k];
-            
           }
         }
-      box_color[j*led_height+i][0]= int(red(nearestColor));
-      box_color[j*led_height+i][1]= int(green(nearestColor));
-      box_color[j*led_height+i][2]= int(blue(nearestColor));
+        
+     box_color[i*led_width+j][0]= int(red(nearestColor));
+      box_color[i*led_width+j][1]= int(green(nearestColor));
+      box_color[i*led_width+j][2]= int(blue(nearestColor));
+      
+      /*box_color[i*led_width+j][0]= int(red(Image.pixels[(i*led_width)+j]));
+      box_color[i*led_width+j][1]= int(green(Image.pixels[(i*led_width)+j]));
+      box_color[i*led_width+j][2]= int(blue(Image.pixels[(i*led_width)+j]));*/
     }
   } 
 }
 
 float colorDistance(color a, color b) 
 {
+
       float redDiff = red(a) - red(b);
       float grnDiff = green(a) - green(b);
       float bluDiff = blue(a) - blue(b);
 
       return sqrt( sq(redDiff) + sq(grnDiff) + sq(bluDiff) );
+}
+
+
+void fill_pixels(){
+  float sizex = float(width)/led_width;
+  float sizey = float(height-100)/led_height;
+  if (tg[0].state){ // on checked
+    for (int j=0;j<led_height;j++){
+       for (int i=0;i<led_width;i++){
+         if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
+           
+           // keep original color
+           color[] origincolor = new color[3];
+           origincolor = box_color[j*led_width+i];
+           
+           color[] whatcolor = new color[3];
+           
+           // find what color selected
+           for (int k=1;k<4;k++){
+             if (tg[k].state) {
+               whatcolor[k-1] = 255; 
+             } 
+           }
+           // recursively fill color
+           fill_recursively(box_color,i,j,origincolor,whatcolor);
+           
+           //break the loop
+           i=led_width+1;
+           j=led_height+1;
+         } 
+       }
+     }
+  }
+}
+
+void fill_recursively(int[][] array,int i,int j,color[] original,color[] fillcolor){
+  if (j <= led_height && i <= led_width && j >= 0 && i >= 0){
+    //if (array[(i*led_height)+j] == original){
+      array[(j*led_width)+i] = fillcolor;
+
+       fill_recursively(array,(i-1),j,original,fillcolor); //left
+       println(i);
+       //fill_recursively(array,i+1,j,original,fillcolor); // right
+        /*fill_recursively(array,i,j+1,original,fillcolor); // right
+        fill_recursively(array,(i+1),j,original,fillcolor); //bottom*/
+    //}
+  }
 }
 
 void draw_pixels(){
@@ -89,9 +141,9 @@ void draw_pixels(){
    stroke(50);
    for (int j=0;j<led_height;j++){
      for (int i=0;i<led_width;i++){
-       fill(box_color[i*led_height+j][0],box_color[i*led_height+j][1],
-           box_color[i*led_height+j][2]);
-       rect(i*sizex,j*sizey,sizex,sizey);
+       fill(box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],
+           (box_color[j*led_width+i])[2]);
+       rect(sizex*i,sizey*j,sizex,sizey);
      }
    }
 }
@@ -111,23 +163,33 @@ void send_button_pressed(){
   if (chc_pos(320, 320+100, height-65, height-65+30)){
     fill(199);
     rect(320,height-65,100,30); 
+    send_to_fpga();
   } 
+}
+
+void send_to_fpga(){
+  color[] color7 = {color(0,0,0),color(0,0,255),color(0,255,0),color(0,255,255),
+                    color(255,0,0),color(255,0,255),color(255,255,0),
+                    color(255,255,255)};
+                    //black blue green lightblue
+                    //red pink yellow
+                    //white
+  String[] ColorSymbol = {"A","B","C","D","E","F","G"};
 }
 
 void selected_pixels(){
   float sizex = float(width)/led_width;
   float sizey = float(height-100)/led_height;
-  if (tg[0].state){ // on checked
+  if (tg[0].state && mousePressed){ // on checked
     for (int j=0;j<led_height;j++){
        for (int i=0;i<led_width;i++){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
-           box_color[i*led_height+j][0] = 255;
-            // receive state from pixel
+            
            for (int k=1;k<4;k++){
              if (tg[k].state) {
-              box_color[i*led_height+j][k-1]=255; 
+              box_color[(j*led_width)+i][k-1]=255; 
              } else {
-              box_color[i*led_height+j][k-1]=0; 
+              box_color[(j*led_width)+i][k-1]=0; 
              }
            }
          } 
