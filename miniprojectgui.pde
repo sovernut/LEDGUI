@@ -175,6 +175,21 @@ void send_to_fpga(){
                     //red pink yellow
                     //white
   String[] ColorSymbol = {"A","B","C","D","E","F","G"};
+  
+  
+  for (int x=0;x<3;x++){
+    for (int j=0;j<led_height;j++){
+        print('"');
+         for (int i=0;i<led_width;i++){
+           if (box_color[(j*led_width)+i][x] == 255) {
+             print('1');
+           } else print('0');
+        }
+        print('"');
+        println("&");
+    }
+    println("===============================");
+  }
 }
 
 void selected_pixels(){
