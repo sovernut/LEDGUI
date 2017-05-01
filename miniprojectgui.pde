@@ -176,20 +176,40 @@ void send_to_fpga(){
                     //white
   String[] ColorSymbol = {"A","B","C","D","E","F","G"};
   
+  // SEND START BIT
   
-  for (int x=0;x<3;x++){
+      for (int j=0;j<led_height;j++){
+       for (int i=0;i<led_width;i++){
+         for (int k=0;k<color7.length;k++){
+             if( box_color[(j*led_width)+i][0] == red(color7[k]) && 
+                box_color[(j*led_width)+i][1] == green(color7[k]) &&
+                box_color[(j*led_width)+i][2] == blue(color7[k])) {
+                   // SEND BIT
+                   print(ColorSymbol[k]);
+                  // DELAY 1 MS
+               }
+         }
+       }
+       println();
+     }
+  // SEND STOP BIT
+ /* for (int x=0;x<3;x++){
     for (int j=0;j<led_height;j++){
         print('"');
          for (int i=0;i<led_width;i++){
            if (box_color[(j*led_width)+i][x] == 255) {
              print('1');
+             // SEND BIT
+             // DELAY 1 MS
            } else print('0');
         }
         print('"');
         println("&");
     }
     println("===============================");
-  }
+  }*/
+  
+
 }
 
 void selected_pixels(){
