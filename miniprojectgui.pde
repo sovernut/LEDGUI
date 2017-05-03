@@ -1,3 +1,6 @@
+import processing.serial.*;
+Serial myPort;
+
 int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
@@ -10,6 +13,7 @@ void setup(){
   for (int i=0;i<4;i++){
     tg[i] = new ToggleButton(name[i],66+i*60,549);//sizex=50 but use 60 for space
   }
+  myPort = new Serial(this, Serial.list()[0], 9600);
 
 }
 
@@ -174,25 +178,24 @@ void send_to_fpga(){
                     //black blue green lightblue
                     //red pink yellow
                     //white
-  String[] ColorSymbol = {"A","B","C","D","E","F","G"};
+  String[] ColorSymbol = {"A","B","C","D","E","F","G","H"};
   
   // SEND START BIT
-  
+  myPort.write(35);
       for (int j=0;j<led_height;j++){
        for (int i=0;i<led_width;i++){
-         for (int k=0;k<color7.length;k++){
-             if( box_color[(j*led_width)+i][0] == red(color7[k]) && 
-                box_color[(j*led_width)+i][1] == green(color7[k]) &&
-                box_color[(j*led_width)+i][2] == blue(color7[k])) {
-                   // SEND BIT
-                   print(ColorSymbol[k]);
-                  // DELAY 1 MS
-               }
+         myPort.write(led_height); //  Write Address
+         if ( box_color[(j*led_width)+i][0] == 255 ) {myPort.write(1); }else {myPort.write(0);}
+         delay(1);
+         if ( box_color[(j*led_width)+i][1] == 255 ) {myPort.write(1); }else {myPort.write(0);}
+         delay(1);
+         if ( box_color[(j*led_width)+i][2] == 255 ) {myPort.write(1); }else {myPort.write(0);}
+         delay(1);
          }
        }
-       println();
-     }
-  // SEND STOP BIT
+     
+     
+
  /* for (int x=0;x<3;x++){
     for (int j=0;j<led_height;j++){
         print('"');
