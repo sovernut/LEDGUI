@@ -181,16 +181,36 @@ void send_to_fpga(){
   String[] ColorSymbol = {"A","B","C","D","E","F","G","H"};
   
   // SEND START BIT
-  myPort.write(35);
+  int a = 0;
+ /*myPort.write("#");
+  delay(a);
+ myPort.write(5);
+  delay(a);
+ for (int k = 0 ; k < 64 ; k++ ){
+   myPort.write(1);
+   delay(a);
+   myPort.write(0);
+    delay(a);
+   myPort.write(1);
+    delay(a);
+ }*/
       for (int j=0;j<led_height;j++){
+        myPort.write("#");
+        myPort.write(j); //  Write Address
+        //delay(a);
        for (int i=0;i<led_width;i++){
-         myPort.write(led_height); //  Write Address
-         if ( box_color[(j*led_width)+i][0] == 255 ) {myPort.write(1); }else {myPort.write(0);}
-         delay(1);
-         if ( box_color[(j*led_width)+i][1] == 255 ) {myPort.write(1); }else {myPort.write(0);}
-         delay(1);
-         if ( box_color[(j*led_width)+i][2] == 255 ) {myPort.write(1); }else {myPort.write(0);}
-         delay(1);
+         
+         //myPort.write(0);
+         //delay(a);
+         //myPort.write(0);
+         //delay(a);
+         //myPort.write(0);
+         if ( box_color[(j*led_width)+i][0] == 255 ) {myPort.write(60); }else {myPort.write(0);}
+         delay(a);
+         if ( box_color[(j*led_width)+i][1] == 255 ) {myPort.write(60); }else {myPort.write(0);}
+         delay(a);
+         if ( box_color[(j*led_width)+i][2] == 255 ) {myPort.write(60); }else {myPort.write(0);}
+         delay(a);
          }
        }
      
