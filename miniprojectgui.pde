@@ -11,7 +11,7 @@ void setup(){
   size(1000,600);
   String[] name = {"PEN","Red","Green","Blue"};
   for (int i=0;i<4;i++){
-    tg[i] = new ToggleButton(name[i],66+i*60,549);//sizex=50 but use 60 for space
+    tg[i] = new ToggleButton(name[i],66+i*60,549); //sizex=50 but use 60 for space
   }
   myPort = new Serial(this, Serial.list()[0], 9600);
 
@@ -50,6 +50,9 @@ if (keyCode==98 || keyCode=='2'){
  }
 }
 
+
+
+// *************************** LOADPICTURE ********************************** //
 void load_image(){
  PImage Image;
   Image = loadImage("image.jpg");
@@ -91,6 +94,8 @@ float colorDistance(color a, color b)
 
       return sqrt( sq(redDiff) + sq(grnDiff) + sq(bluDiff) );
 }
+// ============================= END LOADPICTURE ============================= //
+
 
 
 void fill_pixels(){
@@ -163,6 +168,8 @@ void draw_send_button(){
  fill(255);
  text("Send",320+35,height-45);
 }
+
+// *********************** SEND_ZONE ***************************** //
 void send_button_pressed(){
   if (chc_pos(320, 320+100, height-65, height-65+30)){
     fill(199);
@@ -172,39 +179,14 @@ void send_button_pressed(){
 }
 
 void send_to_fpga(){
-  color[] color7 = {color(0,0,0),color(0,0,255),color(0,255,0),color(0,255,255),
-                    color(255,0,0),color(255,0,255),color(255,255,0),
-                    color(255,255,255)};
-                    //black blue green lightblue
-                    //red pink yellow
-                    //white
-  String[] ColorSymbol = {"A","B","C","D","E","F","G","H"};
-  
-  // SEND START BIT
-  int a = 0;
- /*myPort.write("#");
-  delay(a);
- myPort.write(5);
-  delay(a);
- for (int k = 0 ; k < 64 ; k++ ){
-   myPort.write(1);
-   delay(a);
-   myPort.write(0);
-    delay(a);
-   myPort.write(1);
-    delay(a);
- }*/
+
+    // SEND START BIT
+    int a = 0; 
       for (int j=0;j<led_height;j++){
-        myPort.write("#");
+        myPort.write("#"); // Write Start Byte
         myPort.write(j); //  Write Address
         //delay(a);
        for (int i=0;i<led_width;i++){
-         
-         //myPort.write(0);
-         //delay(a);
-         //myPort.write(0);
-         //delay(a);
-         //myPort.write(0);
          if ( box_color[(j*led_width)+i][0] == 255 ) {myPort.write(60); }else {myPort.write(0);}
          delay(a);
          if ( box_color[(j*led_width)+i][1] == 255 ) {myPort.write(60); }else {myPort.write(0);}
@@ -215,6 +197,8 @@ void send_to_fpga(){
        }
      
      
+
+// ******************* for printing value *************************** //
 
  /* for (int x=0;x<3;x++){
     for (int j=0;j<led_height;j++){
@@ -235,6 +219,7 @@ void send_to_fpga(){
 
 }
 
+// ******************* FILLING A BOX *************************** //
 void selected_pixels(){
   float sizex = float(width)/led_width;
   float sizey = float(height-100)/led_height;
@@ -242,14 +227,18 @@ void selected_pixels(){
     for (int j=0;j<led_height;j++){
        for (int i=0;i<led_width;i++){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
-            
-           for (int k=1;k<4;k++){
-             if (tg[k].state) {
-              box_color[(j*led_width)+i][k-1]=255; 
-             } else {
-              box_color[(j*led_width)+i][k-1]=0; 
-             }
-           }
+           // Left Click to Add
+            if (mousePressed && (mouseButton == LEFT)){
+             for (int k=1;k<4;k++){
+               if (tg[k].state) {
+                box_color[(j*led_width)+i][k-1]=255; 
+               } else {
+                box_color[(j*led_width)+i][k-1]=0; 
+               }
+             } // Right Click to Delete
+            } else if (mousePressed && (mouseButton == RIGHT)) {
+              for(int k=0;k<3;k++)box_color[(j*led_width)+i][k]=0; 
+            }
          } 
        }
      }
@@ -259,7 +248,7 @@ void selected_pixels(){
 
 
 
-
+// FOR CHECK MOUSE POSITION
 boolean chc_pos(float x,float xf,float y,float yf){
   if ( mouseX > x && mouseX < xf && mouseY > y && mouseY < yf) {
      return true; 
