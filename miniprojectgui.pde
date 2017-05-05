@@ -1,6 +1,7 @@
 import processing.serial.*;
 Serial myPort;
 
+int BrushType = 0; 
 int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
@@ -22,7 +23,7 @@ void draw(){
   draw_pixels();
   draw_color_panel();
   draw_send_button();
-  
+  draw_brushsize_indicator();
   for (int i=0;i<4;i++) tg[i].draws();
   selected_pixels();
 }
@@ -30,7 +31,7 @@ void draw(){
 
 void mousePressed(){
  for (int i=0;i<4;i++) tg[i].change_state();
- send_button_pressed();
+   button_pressed();
 }
 
 void keyPressed() {
@@ -159,23 +160,45 @@ void draw_pixels(){
 
 void draw_color_panel(){
  fill(50);
- rect(50,height-75,400,50); 
+ rect(50,height-75,800,50); 
 }
 
 void draw_send_button(){
+  int x = 320;
  fill(22);
- rect(320,height-65,100,30); 
+ rect(x,height-65,100,30); 
  fill(255);
- text("Send",320+35,height-45);
+ text("Send",x+35,height-45);
+}
+void draw_brushsize_indicator(){
+ int x = 450;
+ fill(22);
+ rect(x,height-65,100,30); 
+ fill(255);
+ text("BrushType : "+BrushType,x+5,height-45);
 }
 
-// *********************** SEND_ZONE ***************************** //
-void send_button_pressed(){
-  if (chc_pos(320, 320+100, height-65, height-65+30)){
+// *********************** BUTTON PRESSED ***************************** //
+void button_pressed(){
+  int x_send = 320;
+  int x_brush = 450;
+  if (chc_pos(x_send, x_send+100, height-65, height-65+30)){ // Send
     fill(199);
-    rect(320,height-65,100,30); 
+    rect(x_send,height-65,100,30); 
     send_to_fpga();
+  } else if (chc_pos(x_brush, x_brush+100, height-65, height-65+30)){ // Brush
+    fill(199);
+    rect(x_brush,height-65,100,30); 
+    toggle_brush_type();
   } 
+}
+
+void toggle_brush_type(){
+  if(BrushType==0){
+    BrushType=1; 
+  }else {
+    BrushType = 0; 
+  }
 }
 
 void send_to_fpga(){
@@ -227,15 +250,21 @@ void selected_pixels(){
     for (int j=0;j<led_height;j++){
        for (int i=0;i<led_width;i++){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
-           // Left Click to Add
+           // ----------------- Left Click to Add
             if (mousePressed && (mouseButton == LEFT)){
              for (int k=1;k<4;k++){
                if (tg[k].state) {
-                box_color[(j*led_width)+i][k-1]=255; 
+                 box_color[(j*led_width)+i][k-1]=255; 
+                  if (BrushType == 1){
+                    if ((j*led_width)+i-1 > 0 && (j*led_width)+i+1 < 2048) {
+                      box_color[(j*led_width)+i+1][k-1]=255;
+                      box_color[(j*led_width)+i-1][k-1]=255;
+                    }
+                  }
                } else {
                 box_color[(j*led_width)+i][k-1]=0; 
                }
-             } // Right Click to Delete
+             } // ----------------- Right Click to Delete
             } else if (mousePressed && (mouseButton == RIGHT)) {
               for(int k=0;k<3;k++)box_color[(j*led_width)+i][k]=0; 
             }
