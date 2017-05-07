@@ -5,6 +5,12 @@ int BrushType = 0;
 int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
+//-------- undo
+int[] undo_stack = new int[5];
+int undo_pointer = 0;
+
+int before_position;
+
 ToggleButton[] tg = new ToggleButton[4];
 
 void setup(){
@@ -31,7 +37,8 @@ void draw(){
 
 void mousePressed(){
  for (int i=0;i<4;i++) tg[i].change_state();
-   button_pressed();
+ button_pressed();
+ 
 }
 
 void keyPressed() {
@@ -49,9 +56,21 @@ void keyPressed() {
 if (keyCode==98 || keyCode=='2'){
    fill_pixels();
  }
+ if (keyCode=='z' || keyCode=='Z'){
+   undo();
+ }
 }
 
+void undo(){
+  for (int k=0;k<3;k++) box_color[undo_stack[undo_pointer]][k] = 0;
+  if (undo_pointer>0) undo_pointer--;
+}
 
+void shiftAndAdd(int a[], int val){
+  int a_length = a.length;
+  System.arraycopy(a, 1, a, 0, a_length-1);
+  a[a_length-1] = val;
+}
 
 // *************************** LOADPICTURE ********************************** //
 void fileSelected(File selection) {
@@ -132,7 +151,7 @@ void fill_pixels(){
                whatcolor[k-1] = 255; 
              } 
            }
-           // recursively fill color
+           // fill color
            fill_all_near_pixel(box_color,i,j,origincolor,whatcolor);
            
            //break the loop
@@ -305,6 +324,19 @@ void selected_pixels(){
   }
 }
 
+void undo_update(int j,int i){
+  int present_pos=(j*led_width)+i;
+   if (present_pos != before_position) {
+       before_position = present_pos;
+       if (undo_pointer<4){
+         undo_pointer++;
+         undo_stack[undo_pointer] = j*led_width+i;
+       } else { 
+         shiftAndAdd(undo_stack,j*led_width+i);
+       }
+       }
+}
+
 void fill_pixel(int i , int j){
   int col = 0;
   if (mousePressed){
@@ -313,8 +345,9 @@ void fill_pixel(int i , int j){
 
     for (int k=1;k<4;k++){
      if (tg[k].state) { // CHECK COLOR
-       box_color[(j*led_width)+i][k-1]=col; 
-        if (BrushType == 1){
+       box_color[(j*led_width)+i][k-1]=col; // fill color in a pixel
+       undo_update(j,i);
+        if (BrushType == 1){ // test fill all
           if ((j*led_width)+i-1 > 0 && (j*led_width)+i+1 < 2048) {
             box_color[(j*led_width)+i+1][k-1]=col;
             box_color[(j*led_width)+i-1][k-1]=col;
