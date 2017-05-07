@@ -43,7 +43,7 @@ void keyPressed() {
      }
  }
  if (keyCode==97 || keyCode=='1'){
-   load_image();
+   selectInput("Select a file to process:", "load_image");
  }
 
 if (keyCode==98 || keyCode=='2'){
@@ -54,36 +54,49 @@ if (keyCode==98 || keyCode=='2'){
 
 
 // *************************** LOADPICTURE ********************************** //
-void load_image(){
- PImage Image;
-  Image = loadImage("image.jpg");
-  Image.resize(led_width,led_height);
-  color[] color7 = {color(0,0,0),color(0,0,255),color(0,255,0),color(0,255,255),
-                    color(255,0,0),color(255,0,255),color(255,255,0),
-                    color(255,255,255)};
-  Image.loadPixels();
-  for (int i = 0; i < led_height; i++) { 
-    for (int j=0; j<led_width;j++){
-      
-      float smallest = colorDistance(Image.pixels[(i*led_width)+j], color7[0]);
-      int nearestColor = color7[0];
-        for (int k=1;k<color7.length;k++){
-          float distance = colorDistance(Image.pixels[(i*led_width)+j], color7[k]);
-          if (distance <= smallest) {
-            smallest = distance;
-            nearestColor = color7[k];
-          }
-        }
+void fileSelected(File selection) {
+  if (selection == null) {
+    println("Window was closed or the user hit cancel.");
+  } else if (selection.getAbsolutePath().endsWith(".jpg") || selection.getAbsolutePath().endsWith(".png")) {
+    println("User selected " + selection.getAbsolutePath());
+  }
+}
+
+
+void load_image(File selection){
+  if (selection == null) {
+    println("Window was closed or the user hit cancel.");
+  } else {
+   PImage Image;
+    Image = loadImage(selection.getAbsolutePath());
+    Image.resize(led_width,led_height);
+    color[] color7 = {color(0,0,0),color(0,0,255),color(0,255,0),color(0,255,255),
+                      color(255,0,0),color(255,0,255),color(255,255,0),
+                      color(255,255,255)};
+    Image.loadPixels();
+    for (int i = 0; i < led_height; i++) { 
+      for (int j=0; j<led_width;j++){
         
-     box_color[i*led_width+j][0]= int(red(nearestColor));
-      box_color[i*led_width+j][1]= int(green(nearestColor));
-      box_color[i*led_width+j][2]= int(blue(nearestColor));
-      
-      /*box_color[i*led_width+j][0]= int(red(Image.pixels[(i*led_width)+j]));
-      box_color[i*led_width+j][1]= int(green(Image.pixels[(i*led_width)+j]));
-      box_color[i*led_width+j][2]= int(blue(Image.pixels[(i*led_width)+j]));*/
-    }
-  } 
+        float smallest = colorDistance(Image.pixels[(i*led_width)+j], color7[0]);
+        int nearestColor = color7[0];
+          for (int k=1;k<color7.length;k++){
+            float distance = colorDistance(Image.pixels[(i*led_width)+j], color7[k]);
+            if (distance <= smallest) {
+              smallest = distance;
+              nearestColor = color7[k];
+            }
+          }
+          
+       box_color[i*led_width+j][0]= int(red(nearestColor));
+        box_color[i*led_width+j][1]= int(green(nearestColor));
+        box_color[i*led_width+j][2]= int(blue(nearestColor));
+        
+        /*box_color[i*led_width+j][0]= int(red(Image.pixels[(i*led_width)+j]));
+        box_color[i*led_width+j][1]= int(green(Image.pixels[(i*led_width)+j]));
+        box_color[i*led_width+j][2]= int(blue(Image.pixels[(i*led_width)+j]));*/
+      }
+    } 
+  }
 }
 
 float colorDistance(color a, color b) 
@@ -108,10 +121,10 @@ void fill_pixels(){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
            
            // keep original color
-           color[] origincolor = new color[3];
+           int[] origincolor = new int[3];
            origincolor = box_color[j*led_width+i];
            
-           color[] whatcolor = new color[3];
+           int[] whatcolor = new int[3];
            
            // find what color selected
            for (int k=1;k<4;k++){
@@ -120,7 +133,7 @@ void fill_pixels(){
              } 
            }
            // recursively fill color
-           fill_recursively(box_color,i,j,origincolor,whatcolor);
+           fill_all_near_pixel(box_color,i,j,origincolor,whatcolor);
            
            //break the loop
            i=led_width+1;
@@ -131,17 +144,52 @@ void fill_pixels(){
   }
 }
 
-void fill_recursively(int[][] array,int i,int j,color[] original,color[] fillcolor){
-  if (j <= led_height && i <= led_width && j >= 0 && i >= 0){
-    //if (array[(i*led_height)+j] == original){
-      array[(j*led_width)+i] = fillcolor;
-
-       fill_recursively(array,(i-1),j,original,fillcolor); //left
-       println(i);
-       //fill_recursively(array,i+1,j,original,fillcolor); // right
-        /*fill_recursively(array,i,j+1,original,fillcolor); // right
-        fill_recursively(array,(i+1),j,original,fillcolor); //bottom*/
-    //}
+void fill_all_near_pixel(int[][] array,int start_i,int start_j,int[] original,int[] fillcolor){
+   box_color[(start_j*led_width)+start_i][0] = fillcolor[0];
+   box_color[(start_j*led_width)+start_i][1] = fillcolor[1];
+   box_color[(start_j*led_width)+start_i][2] = fillcolor[2];
+  for (int j=start_j;j<led_height;j++){
+       for (int i=start_i;i<led_width;i++){
+         int[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
+         if (this_box_color == original){
+           box_color[(j*led_width)+i][0] = fillcolor[0];
+           box_color[(j*led_width)+i][1] = fillcolor[1];
+           box_color[(j*led_width)+i][2] = fillcolor[2];
+         }
+      }
+  }
+  
+  for (int j=start_j;j>=0;j--){
+       for (int i=start_i;i>=0;i--){
+         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
+         if (this_box_color == original){
+           box_color[(j*led_width)+i][0] = fillcolor[0];
+           box_color[(j*led_width)+i][1] = fillcolor[1];
+           box_color[(j*led_width)+i][2] = fillcolor[2];
+         }
+      }
+  }
+  
+  for (int j=start_j;j>=0;j--){
+       for (int i=start_i;i<led_width;i++){
+         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
+         if (this_box_color == original){
+           box_color[(j*led_width)+i][0] = fillcolor[0];
+           box_color[(j*led_width)+i][1] = fillcolor[1];
+           box_color[(j*led_width)+i][2] = fillcolor[2];
+         }
+      }
+  }
+  
+  for (int j=start_j;j<led_height;j++){
+       for (int i=start_i;i>=0;i--){
+         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
+         if (this_box_color == original){
+           box_color[(j*led_width)+i][0] = fillcolor[0];
+           box_color[(j*led_width)+i][1] = fillcolor[1];
+           box_color[(j*led_width)+i][2] = fillcolor[2];
+         }
+      }
   }
 }
 
@@ -250,30 +298,38 @@ void selected_pixels(){
     for (int j=0;j<led_height;j++){
        for (int i=0;i<led_width;i++){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
-           // ----------------- Left Click to Add
-            if (mousePressed && (mouseButton == LEFT)){
-             for (int k=1;k<4;k++){
-               if (tg[k].state) {
-                 box_color[(j*led_width)+i][k-1]=255; 
-                  if (BrushType == 1){
-                    if ((j*led_width)+i-1 > 0 && (j*led_width)+i+1 < 2048) {
-                      box_color[(j*led_width)+i+1][k-1]=255;
-                      box_color[(j*led_width)+i-1][k-1]=255;
-                    }
-                  }
-               } else {
-                box_color[(j*led_width)+i][k-1]=0; 
-               }
-             } // ----------------- Right Click to Delete
-            } else if (mousePressed && (mouseButton == RIGHT)) {
-              for(int k=0;k<3;k++)box_color[(j*led_width)+i][k]=0; 
-            }
+            fill_pixel(i,j);
          } 
        }
      }
   }
 }
 
+void fill_pixel(int i , int j){
+  int col = 0;
+  if (mousePressed){
+  
+    if (mouseButton == LEFT) col = 255; else col = 0;
+
+    for (int k=1;k<4;k++){
+     if (tg[k].state) { // CHECK COLOR
+       box_color[(j*led_width)+i][k-1]=col; 
+        if (BrushType == 1){
+          if ((j*led_width)+i-1 > 0 && (j*led_width)+i+1 < 2048) {
+            box_color[(j*led_width)+i+1][k-1]=col;
+            box_color[(j*led_width)+i-1][k-1]=col;
+          }
+        }
+     } else {
+      box_color[(j*led_width)+i][k-1]=0; 
+     }
+   }
+   
+   
+  }
+  
+  
+}
 
 
 
