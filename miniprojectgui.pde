@@ -149,8 +149,9 @@ void fill_pixels(){
              } 
            }
            // fill color
-           fill_all_near_pixel(i,j,origincolor,whatcolor);
-           
+
+           fill_recursively(i,j,origincolor,whatcolor);
+
            //break the loop
            i=led_width+1;
            j=led_height+1;
@@ -168,60 +169,17 @@ Boolean compare_2_array(int[] a, int[] b){
     if (count == a.length) return true; else return false;
 }
 
-  
-void fill_all_near_pixel(int start_i,int start_j,int[] original,int[] fillcolor){
-   box_color[(start_j*led_width)+start_i][0] = fillcolor[0];
-   box_color[(start_j*led_width)+start_i][1] = fillcolor[1];
-   box_color[(start_j*led_width)+start_i][2] = fillcolor[2];
-  for (int j=start_j;j<led_height;j++){
-    int[] for_check_row= new int[3];
-       for (int i=start_i;i<led_width;i++){
-         int []this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
-         for_check_row = this_box_color;
-         if (compare_2_array(this_box_color,original)){
-           box_color[(j*led_width)+i][0] = fillcolor[0];
-           box_color[(j*led_width)+i][1] = fillcolor[1];
-           box_color[(j*led_width)+i][2] = fillcolor[2];
-         } else {
-          i=led_width+1;
-         }
-      }
-      if (!compare_2_array(for_check_row,original)){
-        j=led_height+1;
-      }
-  }
-  
-  for (int j=start_j;j>=0;j--){
-       for (int i=start_i;i>=0;i--){
-         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
-         if (this_box_color == original){
-           box_color[(j*led_width)+i][0] = fillcolor[0];
-           box_color[(j*led_width)+i][1] = fillcolor[1];
-           box_color[(j*led_width)+i][2] = fillcolor[2];
-         }
-      }
-  }
-  
-  for (int j=start_j;j>=0;j--){
-       for (int i=start_i;i<led_width;i++){
-         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
-         if (this_box_color == original){
-           box_color[(j*led_width)+i][0] = fillcolor[0];
-           box_color[(j*led_width)+i][1] = fillcolor[1];
-           box_color[(j*led_width)+i][2] = fillcolor[2];
-         }
-      }
-  }
-  
-  for (int j=start_j;j<led_height;j++){
-       for (int i=start_i;i>=0;i--){
-         color[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
-         if (this_box_color == original){
-           box_color[(j*led_width)+i][0] = fillcolor[0];
-           box_color[(j*led_width)+i][1] = fillcolor[1];
-           box_color[(j*led_width)+i][2] = fillcolor[2];
-         }
-      }
+void fill_recursively(int i,int j,int[] original,int[] fillcolor){
+  if (j <= led_height && i <= led_width && j >= 0 && i >= 0){
+    println(i,j);
+    if (compare_2_array(box_color[(j*led_width)+i] ,original)){
+       for(int k=0;k<box_color[0].length;k++)box_color[(j*led_width)+i][k] = fillcolor[k];
+
+       fill_recursively((i-1),j,original,fillcolor); //left
+       fill_recursively(i+1,j,original,fillcolor); // right
+        fill_recursively(i,j+1,original,fillcolor); // right
+        fill_recursively(i,j-1,original,fillcolor); //bottom
+    }
   }
 }
 
