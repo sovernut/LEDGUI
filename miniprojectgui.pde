@@ -6,7 +6,8 @@ int led_width = 64;
 int led_height = 32;
 int[][] box_color = new int[led_width*led_height][3];
 //-------- undo
-int[] undo_stack = new int[5];
+int number_undo = 100;
+int[] undo_stack = new int[number_undo];
 int undo_pointer = 0;
 
 int before_position;
@@ -212,38 +213,6 @@ void fill_all_near_pixel(int[][] array,int start_i,int start_j,int[] original,in
   }
 }
 
-void draw_pixels(){
-   float sizex = float(width)/float(led_width);
-   float sizey = float(height-100)/float(led_height);
-   stroke(50);
-   for (int j=0;j<led_height;j++){
-     for (int i=0;i<led_width;i++){
-       fill(box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],
-           (box_color[j*led_width+i])[2]);
-       rect(sizex*i,sizey*j,sizex,sizey);
-     }
-   }
-}
-
-void draw_color_panel(){
- fill(50);
- rect(50,height-75,800,50); 
-}
-
-void draw_send_button(){
-  int x = 320;
- fill(22);
- rect(x,height-65,100,30); 
- fill(255);
- text("Send",x+35,height-45);
-}
-void draw_brushsize_indicator(){
- int x = 450;
- fill(22);
- rect(x,height-65,100,30); 
- fill(255);
- text("BrushType : "+BrushType,x+5,height-45);
-}
 
 // *********************** BUTTON PRESSED ***************************** //
 void button_pressed(){
@@ -347,7 +316,7 @@ void undo_update(int j,int i){
   int present_pos=(j*led_width)+i;
    if (present_pos != before_position) {
        before_position = present_pos;
-       if (undo_pointer<4){
+       if (undo_pointer<number_undo-1){
          undo_pointer++;
          undo_stack[undo_pointer] = j*led_width+i;
        } else { 
@@ -374,13 +343,15 @@ void fill_pixel(int i , int j){
         }
      } else {
       box_color[(j*led_width)+i][k-1]=0; 
+      if (BrushType == 1){ // test fill all
+            if ((j*led_width)+i-1 > 0 && (j*led_width)+i+1 < 2048) {
+              box_color[(j*led_width)+i+1][k-1]=0;
+              box_color[(j*led_width)+i-1][k-1]=0;
+              }
      }
    }
-   
-   
   }
-  
-  
+}
 }
 
 
