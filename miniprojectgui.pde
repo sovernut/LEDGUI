@@ -140,12 +140,8 @@ void fill_pixels(){
        for (int i=0;i<led_width;i++){
          if (chc_pos(i*sizex, i*sizex+sizex, j*sizey, j*sizey+sizey)){
            
-           // keep original color
-           int[] origincolor = new int[3];
-           origincolor = box_color[j*led_width+i];
-           
+           int[] origincolor = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
            int[] whatcolor = new int[3];
-           
            // find what color selected
            for (int k=1;k<4;k++){
              if (tg[k].state) {
@@ -153,7 +149,7 @@ void fill_pixels(){
              } 
            }
            // fill color
-           fill_all_near_pixel(box_color,i,j,origincolor,whatcolor);
+           fill_all_near_pixel(i,j,origincolor,whatcolor);
            
            //break the loop
            i=led_width+1;
@@ -164,18 +160,34 @@ void fill_pixels(){
   }
 }
 
-void fill_all_near_pixel(int[][] array,int start_i,int start_j,int[] original,int[] fillcolor){
+Boolean compare_2_array(int[] a, int[] b){
+  int count = 0;
+  for (int k = 0;k<a.length;k++){
+     if (a[k] == b[k]) count++; 
+  }
+    if (count == a.length) return true; else return false;
+}
+
+  
+void fill_all_near_pixel(int start_i,int start_j,int[] original,int[] fillcolor){
    box_color[(start_j*led_width)+start_i][0] = fillcolor[0];
    box_color[(start_j*led_width)+start_i][1] = fillcolor[1];
    box_color[(start_j*led_width)+start_i][2] = fillcolor[2];
   for (int j=start_j;j<led_height;j++){
+    int[] for_check_row= new int[3];
        for (int i=start_i;i<led_width;i++){
-         int[] this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
-         if (this_box_color == original){
+         int []this_box_color = {box_color[(j*led_width)+i][0],box_color[(j*led_width)+i][1],box_color[(j*led_width)+i][2]};
+         for_check_row = this_box_color;
+         if (compare_2_array(this_box_color,original)){
            box_color[(j*led_width)+i][0] = fillcolor[0];
            box_color[(j*led_width)+i][1] = fillcolor[1];
            box_color[(j*led_width)+i][2] = fillcolor[2];
+         } else {
+          i=led_width+1;
          }
+      }
+      if (!compare_2_array(for_check_row,original)){
+        j=led_height+1;
       }
   }
   
@@ -237,65 +249,7 @@ void toggle_brush_type(){
   }
 }
 
-void send_to_fpga(){
-    // SEND START BIT
-    int a = 0; 
-    StopWatchTimer timer = new StopWatchTimer();
-    timer.start();
-      for (int j=0;j<led_height;j++){
-        myPort.write("#"); // Write Start Byte
-        myPort.write(j); //  Write Address
-        //delay(a);
-       for (int i=0;i<led_width;i+=2){
-         int data;
-         data = cal_bf_send(i,j,0);
-         myPort.write(data);
-         data = cal_bf_send(i,j,1);
-         myPort.write(data);
-         data = cal_bf_send(i,j,2);
-         myPort.write(data);
-         delay(a);
-         //if ( box_color[(j*led_width)+i][0] == 255 ) {myPort.write(60); }else {myPort.write(0);}
-         //if ( box_color[(j*led_width)+i][1] == 255 ) {myPort.write(60); }else {myPort.write(0);}
-         //delay(a);
-         //if ( box_color[(j*led_width)+i][2] == 255 ) {myPort.write(60); }else {myPort.write(0);}
-         //delay(a);
-         //}
-       }
 
-}
-       timer.stop();
-       println("Time:"+timer.getElapsedTime());
-
-     
-// ******************* for printing value *************************** //
-
- /* for (int x=0;x<3;x++){
-    for (int j=0;j<led_height;j++){
-        print('"');
-         for (int i=0;i<led_width;i++){
-           if (box_color[(j*led_width)+i][x] == 255) {
-             print('1');
-             // SEND BIT
-             // DELAY 1 MS
-           } else print('0');
-        }
-        print('"');
-        println("&");
-    }
-    println("===============================");
-  }*/
-}
-int cal_bf_send(int i, int j, int colors){
-  int data = 0;
-  if ( box_color[(j*led_width)+i][colors] == 255 ){
-    data+=240;
-  }
-  if ( box_color[(j*led_width)+i+1][colors] == 255 ){
-    data+=15;
-  }
-  return data;
-}
      
 // ******************* FILLING A BOX **************1************* //
 void selected_pixels(){
